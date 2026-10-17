@@ -1,0 +1,110 @@
+name: Release assets
+run-name: Release assets - ${{ github.event.release.tag_name || inputs.tag }}
+
+# Validate the source checkout and publish only artifacts produced by CI.
+# This workflow never reads ignored local release/ files.
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing GitHub Release tag to build (for example v1.4.9)
+        required: true
+        type: string
+      release_asset_path:
+        description: Optional runner-visible asset path to upload; leave empty for no FPK upload
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-assets-${{ github.event.release.tag_name || inputs.tag }}
+  cancel-in-progress: false
+
+env:
+  TAG: ${{ github.event.release.tag_name || inputs.tag }}
+  RELEASE_ASSET_PATH: ${{ inputs.release_asset_path || vars.RELEASE_ASSET_PATH || '' }}
+
+jobs:
+  build-and-upload:
+    name: Validate source and upload release assets
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate release tag
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$TAG" =~ ^[A-Za-z0-9._-]+$ ]] || { echo "Invalid release tag: $TAG" >&2; exit 1; }
+          echo "Building tag $TAG"
+
+      - name: Checkout the release tag
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG }}
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.x'
+          cache: npm
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24.x'
+          cache: false
+
+      - name: Build and verify the source checkout
+        # The helper builds UI and Go gateway/native-control and runs tests;
+        # it explicitly does not build the qBittorrent runtime or a complete FPK.
+        run: python3 tools/build_checkout.py
+
+      - name: Create source and validation bundles
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          version="${TAG#v}"
+          prefix="fnos-qbittorrent-${version}"
+          git archive --format=tar.gz --prefix="${prefix}/" --output="dist/${prefix}-source.tar.gz" "$TAG"
+          tar -czf "dist/${prefix}-checkout-validation.tar.gz" -C .runtime checkout-build
+          sha256sum dist/* | tee dist/SHA256SUMS
+          printf '%s\n' \
+            "Tag: ${TAG}" \
+            "Commit: $(git rev-parse HEAD)" \
+            "Source archive: ${prefix}-source.tar.gz" \
+            "Validation archive: ${prefix}-checkout-validation.tar.gz" \
+            '' \
+            'Boundary:' \
+            '- UI and Go source checkout build/tests were executed by tools/build_checkout.py.' \
+            '- The qBittorrent native runtime and a complete FPK were NOT rebuilt.' \
+            '- No ignored local release/ asset is read or uploaded by default.' \
+            '- An FPK is uploaded only when RELEASE_ASSET_PATH names a file present in this CI runner.' \
+            > dist/release-boundary.txt
+
+      - name: Upload source and validation bundles
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh release upload "$TAG" dist/* --repo "$GITHUB_REPOSITORY" --clobber
+
+      - name: Upload explicitly staged release asset
+        if: ${{ env.RELEASE_ASSET_PATH != '' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          asset="$RELEASE_ASSET_PATH"
+          [[ -f "$asset" ]] || {
+            echo "RELEASE_ASSET_PATH does not name a file in this CI runner: $asset" >&2
+            echo "The workflow will not use a local ignored release/ package." >&2
+            exit 1
+          }
+          sha256sum "$asset"
+          gh release upload "$TAG" "$asset" --repo "$GITHUB_REPOSITORY" --clobber
