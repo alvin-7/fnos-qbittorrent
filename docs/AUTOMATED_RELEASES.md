@@ -1,22 +1,11 @@
 # Automated GitHub Releases
 
-`.github/workflows/release.yml` is triggered by a push of a tag matching `v*` (or manually for an existing tag). It checks out that immutable tag, runs `tools/build_checkout.py`, and creates or reuses the corresponding GitHub Release.
+`.github/workflows/release.yml` runs only when a `v*` tag is pushed. It checks out that immutable tag, builds the UI and Go application, downloads the hash-locked public source inputs, then fails closed unless the complete native x86_64 qBittorrent 5.2.4 / musl / Qt / compiler / APK / `fnpack` closure is present in the checkout or is supplied by an explicit, hash-verified CI input.
 
-The workflow publishes only CI-produced, uniquely named assets:
+A successful run must build a real FPK, audit its contents, calculate SHA256, and run the offline package smoke test. The Release contains exactly the FPK and its `.sha256` file. Source is retained in Git; source and checkout-validation archives are never uploaded. The upload step refuses to overwrite an existing same-name asset, so reruns with the same tag fail rather than replacing immutable release bytes.
 
-- `fnos-qbittorrent-<version>-source.tar.gz`
-- `fnos-qbittorrent-<version>-checkout-validation.tar.gz`
-- `SHA256SUMS`
-- `release-notes.md` is used when a Release is first created
+## Current clean-build assessment
 
-Reruns never use `--clobber` for release assets. If an asset already exists, the workflow downloads it and compares its SHA256 with the artifact produced in the rerun; a mismatch fails rather than replacing an immutable asset.
+The repository currently locks qBittorrent, libtorrent, Boost, Alpine recipe provenance, and some APK hashes, but `docs/NATIVE_INPUTS.lock.json` explicitly remains partial. It does not provide the complete compiler/dev APK closure, Qt private ABI bootstrap, complete musl/Qt runtime assembly and ownership/source closure, or a hash-locked official `fnpack`. The historical `build_native_1_4_8.py` and `build_native_1_4_1.py` also require local prior FPK/source material and a local `tools/fnpack`; they are not clean-checkout builds. CI therefore stops at `check_native_ci_inputs.py` and publishes no FPK rather than downloading an arbitrary runtime or fabricating one.
 
-## FPK boundary
-
-A clean checkout can build and test the UI, Go gateway, and native-control. It cannot currently rebuild a complete native qBittorrent FPK from Git alone: the complete compiler/runtime/APK closure, Qt private ABI bootstrap, complete runtime assembly, matching source delivery, and verified `fnpack` input are not all present and locked. `docs/NATIVE_INPUTS.lock.json` is explicitly partial. Therefore CI does **not** download an arbitrary runtime or upload an FPK by inference. Release notes explicitly state that an FPK must be manually supplied and SHA256-verified if one is later distributed.
-
-A real FPK path may be added only after a reproducible build recipe has all inputs locked and the CI job actually builds, packages, and verifies the result. Until then, do not add an FPK upload step or treat a local ignored `release/` file as a CI artifact.
-
-## Existing releases and tags
-
-`v1.4.8` was created before this workflow existed on `main` (`v1.4.8` points to `175f821`; the workflow was added later at `ea47dc8`). Its existing Release is not retroactively triggered by this change. Do not move or recreate that tag. A future `v*` tag created from a commit containing this workflow will trigger the automated Release flow; the tag must be created and pushed by the project owner when ready.
+When the missing closure is added as reproducible, public, hash-locked CI inputs, the same tag workflow can proceed to the real build. Until then, no FPK claim is made. The existing `v1.4.8` tag points to an earlier commit and is immutable; this change does not move or rebuild it. A new `v*` tag created from a commit containing this workflow is required for an automatic release.

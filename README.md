@@ -23,7 +23,7 @@ React UI → 同源 /app/fnos-qbittorrent-native/ → 允许的 API
 
 ## GitHub 自动 Release
 
-Tag push 自动发布、资产不可覆盖策略与完整 FPK 构建边界见 [自动 Release 说明](docs/AUTOMATED_RELEASES.md)。当前 CI 只发布可验证的源码和 checkout validation 资产；完整 FPK 仍需手动提供并校验 SHA256。`v1.4.8` 的 tag 早于 workflow，不会被本次修改追触发，不能移动或重建该 tag。
+仅 `v*` tag push 触发自动发布。成功时 Release 只包含 CI 真实构建并审计过的 x86_64 FPK 与对应 SHA256；源码保留在 Git，不上传 source/checkout-validation archives。完整闭包缺失时 CI fail-closed，不生成或上传假包。构建边界与锁定输入见 [自动 Release 说明](docs/AUTOMATED_RELEASES.md)。现有 `v1.4.8` tag 不移动、不覆盖、不会被重建；需从包含新 workflow 的提交创建新 tag。
 
 ## 开发与验证
 
