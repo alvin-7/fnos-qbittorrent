@@ -1,0 +1,2 @@
+import {test,expect} from './real-fixture';import fs from 'node:fs';
+test('详情读取真实文件与速度',async({page})=>{await page.goto('http://127.0.0.1:18080');await page.getByRole('button',{name:'详情 legal-test.txt',exact:true}).click();await expect(page.getByRole('dialog',{name:'任务详情'})).toBeVisible();await expect(page.getByText('文件列表')).toBeVisible();await expect(page.getByText('保存位置：/downloads')).toBeVisible();await expect(page.getByText('下载速度')).toBeVisible();});

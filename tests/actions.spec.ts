@@ -1,0 +1,3 @@
+import {test,expect} from './real-fixture';import fs from 'node:fs';
+async function login(page:any){await page.goto('http://127.0.0.1:18080');await expect(page.getByRole('button',{name:'添加任务',exact:true})).toBeVisible()}
+test('停止和开始使用5.2实际API',async({page})=>{await login(page);const row=page.locator('[data-torrent]').first();await expect(row).toBeVisible();await row.getByRole('button',{name:'暂停',exact:true}).click();await expect(row.getByRole('button',{name:'继续',exact:true})).toBeVisible();await row.getByRole('button',{name:'继续',exact:true}).click();await expect(row.getByRole('button',{name:'暂停',exact:true})).toBeVisible();});

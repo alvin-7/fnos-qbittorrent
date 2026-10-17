@@ -1,0 +1,21 @@
+# Native fnOS gateway authentication boundary (1.2.3)
+
+Official contract: https://developer.fnnas.com/docs/core-concepts/gateway-registration (retrieved 2026-10-16). fnOS authenticates each request before forwarding to the registered Unix socket and supplies X-Trim-Userid/Isadmin/Username. These are trusted only on that ingress; the application separately requires an unambiguous numeric UID and admin=true on **every** request, including HTML/assets and GET. Native qB credentials/SID remain server-side. Native main entry no longer requires fnos_qbt_session; Docker/legacy handler retains its existing session reasons.
+
+## CSRF proof and constraints
+
+Native API requests require the exact non-safelisted custom header X-Fnos-CSRF: gateway-request-v1. This is a public request marker, NOT a secret or identity token. Browser same-origin policy permits same-origin JS to send it. Cross-origin JS must first pass a CORS preflight; OPTIONS is always rejected and all backend Access-Control-* response headers are removed. Forms, navigations, images and no-cors fetch cannot send this header. Thus the marker cannot be supplied by cross-origin browser attacks even in older WebViews without Fetch Metadata. No app Cookie is needed. Authentication still comes from fnOS on each request, not this marker.
+
+Defense in depth: require valid non-null HTTP(S) Origin or Referer, consistency if both are present, and if Sec-Fetch-Site exists require same-origin (not same-site/cross-site/none). Because fnOS may rewrite Host, the authority is not guessed from localhost or untrusted forwarded headers, and is not bound to a prior cookie/bootstrap authority. A changed A→B browser authority is accepted **only** with the non-simple request marker and current gateway identity, not an arbitrary-Origin exception. No CORS is enabled. WebViews that provide neither source header are fail-closed. XSS, compromised same-origin JS, a reverse proxy injecting the marker into arbitrary requests, or disabling browser SOP defeat this protection and are outside this design.
+
+qB supports some mutations via GET: GET/HEAD API routes use an explicit read-only allowlist; all other business requests require POST. The qB Host/CSRF checks remain enabled after validated source mapping. Backend login/probe occurs before a mutation; ambiguous backend failures are not replayed.
+
+## Transport, stripping and deployment prerequisite
+
+Native handler requires an internal context value installed only by net/http ConnContext on an actual net.UnixConn. A TCP request with perfect fake X-Trim headers is rejected. No production TCP frontend or injection proxy is shipped. Before qB forwarding the proxy strips all X-Trim-*, X-Forwarded-*, Forwarded, application marker/bootstrap headers and native ingress browser cookies; backend transport installs only its private SID. Response identity/CORS headers are removed. Local HTTP→Unix bridges are test-only, bind loopback, strip ALL caller X-Trim-* before injecting synthetic fixture identity and are never packaged/deployable.
+
+The official fnOS gateway must replace/strip caller X-Trim identity and inject the authenticated user; this follows the documented trusted-identity contract but the actual platform binary/ACL has not been inspected. Unix socket ownership (0660), protected containing directory (0770), and access restricted to the application and fnOS gateway remain **real NAS acceptance prerequisites**. Local Unix clients with filesystem permission are trusted; Unix transport alone cannot distinguish a malicious permitted local process. Do not publish any arbitrary public TCP→Unix proxy, even on localhost. If the installed platform does not enforce these prerequisites, deployment is blocked; header strings alone cannot fix that.
+
+## Evidence boundaries
+
+All automated tests are isolated local qB 5.2.4 fixtures, synthetic identities and desktop/mobile browser simulations. They do not authenticate a physical phone, prove a particular fnOS build strips spoofed headers, or prove the real socket ACL. No NAS tasks, NAS credentials or git are accessed. The previous session_expired/session_origin_mismatch rejection is structurally removed from the native path, not claimed as physical-phone acceptance.

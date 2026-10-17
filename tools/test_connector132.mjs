@@ -1,0 +1,14 @@
+import ts from 'typescript';import fs from 'node:fs';import assert from 'node:assert/strict';
+const source=ts.transpile(fs.readFileSync('src/connectorValidation.ts','utf8'),{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022});
+const m=await import('data:text/javascript;base64,'+Buffer.from(source).toString('base64'));
+const valid={enabled:true,bindIP:'127.0.0.1',port:'18081',username:'fixture',password:'x'.repeat(16),passwordSet:false,allowedCIDRs:['172.18.0.0/16'],trustedHTTP:true};
+assert.equal(m.connectorValidation(valid),'');
+assert.equal(m.connectorValidation({...valid,bindIP:'::1',allowedCIDRs:['fd00::/64']}),'');
+for(const [key,value] of [['bindIP','host.docker.internal'],['bindIP','0.0.0.0'],['bindIP','::'],['port','18081.5'],['port',''],['username',' '],['password','short'],['allowedCIDRs',['172.18.0.1/16']],['allowedCIDRs',['::/0']],['trustedHTTP',false]]) assert(m.connectorValidation({...valid,[key]:value}),key);
+assert.equal(m.connectorValidation({...valid,password:'',passwordSet:true}),'');
+assert.equal(m.connectorValidation({...valid,enabled:false,bindIP:'',port:''}),'');
+assert.match(m.connectorFailure('connector_bind_failed'),/端口.*占用/);
+assert.match(m.connectorFailure('private_storage_permissions'),/权限/);
+assert.match(m.connectorFailure('invalid_connector_scope_or_credentials'),/参数/);
+assert(!m.connectorFailure('/private/secret').includes('/private/secret'));
+console.log('connector validation and safe localized reason mapping passed');

@@ -1,0 +1,28 @@
+import http from 'node:http';import fs from 'node:fs';import assert from 'node:assert/strict';import {chromium} from 'playwright';
+const prefix='/app/fnos-qbittorrent-native',report={cases:[]};
+const server=http.createServer((req,res)=>{if(req.url==='/shell'){res.setHeader('Content-Type','text/html');return res.end(`<style>html,body{height:100%;margin:0}iframe{height:100%;width:100%;border:0}</style><iframe src="${prefix}/"></iframe>`)}for(const k of Object.keys(req.headers))if(k.toLowerCase().startsWith('x-trim-'))delete req.headers[k];delete req.headers.cookie;const u=http.request({socketPath:process.env.GATEWAY_SOCKET,path:req.url,method:req.method,headers:{...req.headers,host:'gateway.internal','x-trim-userid':'1000','x-trim-isadmin':'true'}},r=>{res.writeHead(r.statusCode,r.headers);r.pipe(res)});u.on('error',()=>{res.writeHead(502);res.end()});req.pipe(u)});
+await new Promise(r=>server.listen(18083,'127.0.0.1',r));let browser;
+try{
+ browser=await chromium.launch({executablePath:'/usr/bin/google-chrome',args:['--no-sandbox','--no-proxy-server']});
+ for(const width of [1440,390]){
+  const page=await browser.newPage({viewport:{width,height:900},hasTouch:true});await page.goto('http://127.0.0.1:18083/shell');const f=page.frameLocator('iframe');await f.getByRole('button',{name:'设置',exact:true}).click();await f.getByRole('button',{name:'高级设置',exact:true}).click();
+  const panel=f.getByRole('region',{name:'MoviePilot 连接器'});await panel.waitFor();console.log('panel text',await panel.innerText());assert.equal(await panel.getByLabel('启用 MoviePilot 连接器').isChecked(),false);assert.equal(await panel.locator('input[type=password]').inputValue(),'');assert.equal(await panel.locator('input[type=password]').getAttribute('type'),'password');
+  await panel.getByRole('button',{name:'只读测试后端'}).click();await panel.getByText(/后端只读探针：qB 5.2.4 就绪/).waitFor();
+  assert(await f.locator('html').evaluate(e=>e.scrollWidth<=innerWidth));await panel.scrollIntoViewIfNeeded();await page.screenshot({path:`evidence/connector135-settings-${width}.png`,fullPage:true});
+  page.on('dialog',d=>d.accept());
+  let saves=0;page.on('request',r=>{if(r.url().includes('/connector/configure'))saves++});
+  await panel.getByLabel('启用 MoviePilot 连接器').check();
+  await panel.getByRole('button',{name:'保存连接器配置'}).click();await panel.getByRole('alert').waitFor();assert.equal(saves,0);
+  await panel.getByLabel('专用 API 端口').fill('18083');await panel.getByLabel('专用账号').fill('ui-fixture');await panel.locator('input[type=password]').fill('x'.repeat(24));
+  await panel.getByRole('button',{name:'保存连接器配置'}).click();await panel.getByRole('alert').filter({hasText:'connector_bind_failed'}).waitFor();assert.equal(saves,1);
+  for(const reason of ['private_storage_permissions','invalid_connector_scope_or_credentials','connector_save_failed']){
+   await page.route('**/connector/configure',r=>r.fulfill({status:409,contentType:'application/json',body:JSON.stringify({reason})}));const before=saves;await panel.getByRole('button',{name:'保存连接器配置'}).click();const alert=panel.getByRole('alert');await alert.filter({hasText:reason}).waitFor();await page.waitForTimeout(300);assert.equal(saves,before+1);await alert.scrollIntoViewIfNeeded();assert(await alert.isVisible());await page.screenshot({path:`evidence/connector135-${reason}-${width}.png`});await page.unroute('**/connector/configure');
+  }
+  report.cases.push({width,real_occupied_port_reason:true,injected_permission_parameter_save_reasons:true,client_invalid_zero_writes:true,one_post_per_click:true});
+  await f.getByRole('button',{name:'关闭设置'}).click();await f.getByRole('button',{name:'设置',exact:true}).click();await f.getByRole('button',{name:'高级设置',exact:true}).click();assert.equal(await f.getByRole('region',{name:'MoviePilot 连接器'}).locator('input[type=password]').inputValue(),'');await f.getByRole('button',{name:'关闭设置'}).click();
+  const labels=f.getByRole('region',{name:'分类与标签'});await labels.getByRole('combobox').selectOption('tag');await labels.getByPlaceholder('标签名称').fill('bad,split');await labels.getByRole('button',{name:'创建',exact:true}).click();await labels.getByRole('alert').filter({hasText:'逗号'}).waitFor();
+  await labels.getByPlaceholder('标签名称').fill('UI-'+width);await labels.getByRole('button',{name:'创建',exact:true}).click();await labels.getByRole('button',{name:new RegExp('^UI-'+width)}).waitFor();await page.screenshot({path:`evidence/connector135-labels-${width}.png`,fullPage:true});
+  report.cases.push({width,iframe:true,default_disabled:true,password_empty_masked:true,backend_readonly_probe:true,container_status_not_claimed:true,comma_rejected:true,tag_created_real_readback:true,no_horizontal_overflow:true});await page.close();
+ }
+ report.passed=true;fs.writeFileSync('evidence/connector135-browser.json',JSON.stringify(report,null,2));console.log(JSON.stringify(report,null,2));
+}finally{if(browser)await browser.close();server.close()}

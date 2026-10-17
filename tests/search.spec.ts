@@ -1,0 +1,3 @@
+import {test,expect} from './real-fixture';import fs from 'node:fs';
+async function login(page:any){await page.goto('http://127.0.0.1:18080');await expect(page.getByRole('button',{name:'添加任务',exact:true})).toBeVisible()}
+test('搜索和状态筛选',async({page})=>{await login(page);await page.getByPlaceholder('搜索任务名称').fill('不存在');await expect(page.getByText('没有匹配的任务')).toBeVisible();await page.getByPlaceholder('搜索任务名称').fill('legal');await expect(page.locator('[data-torrent]')).toHaveCount(1);await page.getByLabel('任务筛选').selectOption('stopped');await expect(page.locator('[data-torrent]')).toHaveCount(0);});

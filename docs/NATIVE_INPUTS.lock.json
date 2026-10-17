@@ -1,0 +1,314 @@
+{
+  "scope": "partial native build inputs; NOT complete native FPK closure",
+  "source_inputs": [
+    {
+      "file": "qBittorrent-release-5.2.4.tar.gz",
+      "url": "https://github.com/qbittorrent/qBittorrent/archive/refs/tags/release-5.2.4.tar.gz",
+      "sha256": "226a6ad1aa7810fcbfa58b0d28b14feb8e207726cbe774d4d267ce769c19dd6c",
+      "bytes": 10854990,
+      "license": "GPL-2.0-or-later source; GPL-3.0-or-later binary"
+    },
+    {
+      "file": "libtorrent-c5ff6c3186a92ddec01f6f0a8146aaedb4a1c3f9.tar.gz",
+      "url": "https://github.com/arvidn/libtorrent/archive/c5ff6c3186a92ddec01f6f0a8146aaedb4a1c3f9.tar.gz",
+      "sha256": "3602816f9c87846699e8dbb71093ff4ab2e0efc59334b1ede9e1817a6e44872e",
+      "bytes": 3642658,
+      "license": "BSD-3-Clause"
+    },
+    {
+      "file": "boost_1_86_0.tar.gz",
+      "url": "https://archives.boost.io/release/1.86.0/source/boost_1_86_0.tar.gz",
+      "sha256": "2575e74ffc3ef1cd0babac2c1ee8bdb5782a0ee672b1912da40e5b4b591ca01f",
+      "bytes": 148772373,
+      "license": "BSL-1.0"
+    }
+  ],
+  "alpine_recipe_provenance": [
+    {
+      "origin": "ca-certificates",
+      "commit": "eb7078df3a16d666e8f7723f94bb92e00d4b9236",
+      "packages": [
+        "ca-certificates-bundle"
+      ],
+      "recipe_sha256": "0c14312c1d5c4a8b7ef74433be9db58517b17eb091bccdf2c8325bc4c9c26480",
+      "expected_files": 1
+    },
+    {
+      "origin": "musl",
+      "commit": "f5640d3a10f664c9119720c60515265d3d6f6d01",
+      "packages": [
+        "musl"
+      ],
+      "recipe_sha256": "db4e568cdf2b256815fdfdb55704cd2efdffdc0e8ecd0cb935fdc3e89e2140f4",
+      "expected_files": 11
+    },
+    {
+      "origin": "qt6-qtbase",
+      "commit": "6a90a193c394ac5e57468bbf61e7176aa894927e",
+      "packages": [
+        "qt6-qtbase"
+      ],
+      "recipe_sha256": "6ecd831139a148f9a9f504f44678a18709ba886628d22cf3fd5988d989850ed1",
+      "expected_files": 4
+    },
+    {
+      "origin": "libb2",
+      "commit": "4f8157b2e125ac222cade929bb25bda16305fefc",
+      "packages": [
+        "libb2"
+      ],
+      "recipe_sha256": "54ff9d9e68e6ba4764dd64aa679a1b8f0def5b2f4ffa76480efaa9927b80838c",
+      "expected_files": 1
+    },
+    {
+      "origin": "util-linux",
+      "commit": "d98c55af59055e6ca60fbe36e171546918709965",
+      "packages": [
+        "libblkid",
+        "libmount"
+      ],
+      "recipe_sha256": "5347f9d386c8684e7f5cc160ae8595c5c3d3cfedcfdc758f5e022a46e560b944",
+      "expected_files": 12
+    },
+    {
+      "origin": "brotli",
+      "commit": "1ee249c9da168084b1c6c9f7488bdffa2ac33c84",
+      "packages": [
+        "brotli-libs"
+      ],
+      "recipe_sha256": "c1a0d5da8517fce014f55f729de9b050fd3db5a7b0c42cb0ca0e4a18fb733e45",
+      "expected_files": 3
+    },
+    {
+      "origin": "c-ares",
+      "commit": "138a6bf9dea5974644e48fef4826b7c474f2f7d8",
+      "packages": [
+        "c-ares"
+      ],
+      "recipe_sha256": "b739af81063f71bc3f02279b355985a39473f698f656295295ac220004332075",
+      "expected_files": 1
+    },
+    {
+      "origin": "openssl",
+      "commit": "013edf8b29199933e8ea34dde460b5584b979042",
+      "packages": [
+        "libcrypto3",
+        "libssl3"
+      ],
+      "recipe_sha256": "612ccf2841efe957089e825b50292a20efb0d9ba8ca3f2a292cefa2515963d21",
+      "expected_files": 2
+    },
+    {
+      "origin": "curl",
+      "commit": "ab53c408436ac7199ed5b67bde204aaca73003bd",
+      "packages": [
+        "libcurl"
+      ],
+      "recipe_sha256": "93592097c3278b82bc813ef1266060bc30be7d078998a8f2a70e4e8f2eb0b031",
+      "expected_files": 1
+    },
+    {
+      "origin": "double-conversion",
+      "commit": "f5a68812ed21e88e804fcc91715517696d37d6a3",
+      "packages": [
+        "double-conversion"
+      ],
+      "recipe_sha256": "d89ea7b8daa062410285a19e29bcb14c747798abb8982ff1a12f23ca4e88566f",
+      "expected_files": 1
+    },
+    {
+      "origin": "duktape",
+      "commit": "a9e2a2dc46f377eb25884f7fea9834492de7f518",
+      "packages": [
+        "duktape-libs"
+      ],
+      "recipe_sha256": "62f2a5d894f7bb0a3cfe4cbc65a168c756b2ca16192f6c6d88a1dd9fef15dec6",
+      "expected_files": 5
+    },
+    {
+      "origin": "libeconf",
+      "commit": "62db33049768522f381410614d59c7d732f72c3a",
+      "packages": [
+        "libeconf"
+      ],
+      "recipe_sha256": "b54a5cbbccacc5bd6df56ae141e27fc7ca9ee08accc4c01d9420cc81ba9e8fba",
+      "expected_files": 2
+    },
+    {
+      "origin": "libffi",
+      "commit": "2c2a7bb4a8b16066834e90402567b2c19403a790",
+      "packages": [
+        "libffi"
+      ],
+      "recipe_sha256": "7dcba5b144b4882426dbd4fcacf10c09d19e3c4347cdd8faa7c1946912b55c1f",
+      "expected_files": 2
+    },
+    {
+      "origin": "gcc",
+      "commit": "423a8ad043d07f2c7546c8ec3e2b0384cda360ae",
+      "packages": [
+        "libgcc",
+        "libgomp",
+        "libstdc++"
+      ],
+      "recipe_sha256": "71d831dbef88c2b0ff7b36b7422e878a07751419583a44b06cda2e561cdb82d4",
+      "expected_files": 45
+    },
+    {
+      "origin": "glib",
+      "commit": "bd96e2db11c9ba7d7795454d16af620d577614c7",
+      "packages": [
+        "glib"
+      ],
+      "recipe_sha256": "f57b710ffa828970b545f8e778e42e50932d19758d238500e5db90db1ae55060",
+      "expected_files": 5
+    },
+    {
+      "origin": "icu",
+      "commit": "6755fdb21483ba250d374c3244f0f48bc63447e2",
+      "packages": [
+        "icu-libs"
+      ],
+      "recipe_sha256": "7d3b5fdc268d3d0edc51ea0b96f8342a9b154515a889b6770547ccb43b3b508a",
+      "expected_files": 8
+    },
+    {
+      "origin": "libidn2",
+      "commit": "8240e09aa2fdd8f9979b2016be082273965aff0c",
+      "packages": [
+        "libidn2"
+      ],
+      "recipe_sha256": "b10c820249ffdf9eea4864bee27618a56163a297f06708362203d553de54a34a",
+      "expected_files": 1
+    },
+    {
+      "origin": "gettext",
+      "commit": "a0b12dbf67fb047e79a1b76c6dfe6f2904d0d391",
+      "packages": [
+        "libintl"
+      ],
+      "recipe_sha256": "e22f0eecaf4e5f1f5febe725f47ee019481ded75cdcf76d3c9dd5e7a9e590d13",
+      "expected_files": 5
+    },
+    {
+      "origin": "nghttp2",
+      "commit": "2f3038c86a2a055b2becb5a8c4fd86365f77347a",
+      "packages": [
+        "nghttp2-libs"
+      ],
+      "recipe_sha256": "4f7d7685104c106d07e103d87991f59f235fdd6dc1f1feab2325ccdd4f561e71",
+      "expected_files": 1
+    },
+    {
+      "origin": "pcre2",
+      "commit": "abc383a51f67922cd61e338b1461cddaa1814b28",
+      "packages": [
+        "libpcre2-16",
+        "pcre2"
+      ],
+      "recipe_sha256": "b1c0fccbef8fa9708c3193debfa2ad7b43af755450dce5f1bd92edeae31b7b15",
+      "expected_files": 1
+    },
+    {
+      "origin": "libproxy",
+      "commit": "851c5e6677e09a71066d12f6585699453fd3d245",
+      "packages": [
+        "libproxy"
+      ],
+      "recipe_sha256": "b88567e2ae22570ad21182f9f7fcfc7f87e213de5c937c55e60331880bda9638",
+      "expected_files": 1
+    },
+    {
+      "origin": "libpsl",
+      "commit": "6bd45b53fb316dc01bda59f5feaf1e127eb64f22",
+      "packages": [
+        "libpsl"
+      ],
+      "recipe_sha256": "b68a1b2d744a902cf296a641631f013d172a3dee2ec78c324e9ec73031a7d2ad",
+      "expected_files": 1
+    },
+    {
+      "origin": "libunistring",
+      "commit": "30d9f19340385b2cd16eaf1cc6a9a8b30c4afe1c",
+      "packages": [
+        "libunistring"
+      ],
+      "recipe_sha256": "897e2505f928b37f16ebae9fa0b31d0ef67a8523f3dd5c4dcebc825c13d2fcfa",
+      "expected_files": 1
+    },
+    {
+      "origin": "zlib",
+      "commit": "f248b33b5943c7dc69bf691031d7612ab2e8ed93",
+      "packages": [
+        "zlib"
+      ],
+      "recipe_sha256": "7b8d064be19f39b5e921e9e2dddb960964c6e159ca035848cc362375f0da9b9f",
+      "expected_files": 1
+    },
+    {
+      "origin": "zstd",
+      "commit": "3c6e2ee2b16f403d53eab39c4426eb61f003c322",
+      "packages": [
+        "zstd-libs"
+      ],
+      "recipe_sha256": "635134417b866a71fc0684bfbc1f8b5ff660c3edcd68f1b0b1335f04963ef5c1",
+      "expected_files": 1
+    }
+  ],
+  "runtime_apk_inputs": [
+    {
+      "file": "build/apks/libssl3-3.5.9-r0.apk",
+      "sha256": "05e3393fb95aa5751ca2f9d242f659f6cff82c1cc7767cc2df4a086f7ad01877",
+      "package": "libssl3",
+      "version": "3.5.9-r0",
+      "license": "Apache-2.0"
+    },
+    {
+      "file": "build/apks/libcrypto3-3.5.9-r0.apk",
+      "sha256": "6632d758d8f5e9ea3b650fe966f23bbf9a202f8b8dceecac93da135dec5e3689",
+      "package": "libcrypto3",
+      "version": "3.5.9-r0",
+      "license": "Apache-2.0"
+    },
+    {
+      "file": "build/apks/pcre2-10.49-r0.apk",
+      "sha256": "2919897914820f42a17a8d7d37df310d2dfad1c82ebe5f539cc5c765f916752a",
+      "package": "pcre2",
+      "version": "10.49-r0",
+      "license": "BSD-3-Clause"
+    },
+    {
+      "file": "build/apks/libpcre2-16-10.49-r0.apk",
+      "sha256": "097f71794dfb16e1d9744e30abc6c6728394912547130735cdaee3bb83f1c8ad",
+      "package": "libpcre2-16",
+      "version": "10.49-r0",
+      "license": "BSD-3-Clause"
+    },
+    {
+      "file": "build/apks/zlib-1.3.2-r1.apk",
+      "sha256": "63aeea03c15a2f9018f81805cfc8aa926bdf5cd68921f22149c2fbb5d0ee9f47",
+      "package": "zlib",
+      "version": "1.3.2-r1",
+      "license": "Zlib"
+    },
+    {
+      "file": "build/apks/qt6-qttools-dev-6.11.1-r0.apk",
+      "sha256": "5ff7015d80fe4182e731aa935e6bbc9110a7c6b555254462a19e97bba1ed4b73",
+      "package": "qt6-qttools-dev",
+      "version": "6.11.1-r0",
+      "license": "LGPL-2.1-only AND LGPL-3.0-only AND GPL-3.0-only AND Qt-GPL-exception-1.0"
+    },
+    {
+      "file": "build/apks/patch-2.8-r0.apk",
+      "sha256": "723c061ea3e2c3e61b457f8f614f0b87724aeae37564ba4c1bdd41c722118187",
+      "package": "patch",
+      "version": "2.8-r0",
+      "license": "GPL-3.0-or-later"
+    }
+  ],
+  "blocked": [
+    "Exact complete compiler/dev APK closure and Qt private ABI bootstrap unavailable in public checkout",
+    "Runtime extraction/ownership/TLS/CA source closure and clean FPK assembly not implemented or verified",
+    "fnpack licensed acquisition and hash lock not established"
+  ]
+}

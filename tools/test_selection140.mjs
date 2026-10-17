@@ -1,0 +1,11 @@
+import ts from 'typescript';import fs from 'node:fs';import assert from 'node:assert/strict';
+const tags=ts.transpile(fs.readFileSync('src/tags.ts','utf8'),{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022});
+const url='data:text/javascript;base64,'+Buffer.from(tags).toString('base64');
+const source=ts.transpile(fs.readFileSync('src/batch.ts','utf8'),{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022}).replace("'./tags'",JSON.stringify(url)).replace("'./pt'",JSON.stringify('data:text/javascript;base64,'+Buffer.from(ts.transpile(fs.readFileSync('src/pt.ts','utf8'),{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022})).toString('base64')));
+const {runBatch}=await import('data:text/javascript;base64,'+Buffer.from(source).toString('base64'));
+const a='a'.repeat(40),b='b'.repeat(40);let writes=[];const tasks={[a]:{category:'old',tags:'keep',state:'stoppedUP'},[b]:{category:'old',tags:'keep',auto_tmm:true,state:'stoppedUP'}};
+const api=async(path,body)=>{if(!body)return [tasks[path.split('=')[1]]];const h=body.get('hashes');writes.push([path,h]);if(path.endsWith('setCategory'))tasks[h].category=body.get('category');if(path.endsWith('removeTags'))tasks[h].tags='';if(path.endsWith('addTags'))tasks[h].tags=body.get('tags');};
+let result=await runBatch(api,'category',[a,b],'');assert.deepEqual(result.ok,[a]);assert.equal(result.failed.length,1);assert.equal(tasks[a].category,'');assert.equal(tasks[a].tags,'keep');assert.deepEqual(writes,[['torrents/setCategory',a]]);
+writes=[];result=await runBatch(api,'tags',[a],undefined,['new']);assert.deepEqual(result.ok,[a]);assert.equal(tasks[a].category,'');assert.equal(tasks[a].tags,'new');assert.equal(writes.length,2);
+let reads=0;writes=[];const delayed=async(p,b)=>{if(b){writes.push(p);return;}reads++;return [{state:reads<3?'stalledUP':'stoppedUP',force_start:false}];};result=await runBatch(delayed,'stop',[a]);assert.deepEqual(result.ok,[a]);assert.deepEqual(writes,['torrents/stop']);
+writes=[];const ambiguous=async(p,b)=>{if(b){writes.push(p);throw Error('ambiguous');}return [{state:'stalledUP'}]};result=await runBatch(ambiguous,'stop',[a]);assert.equal(result.failed.length,1);assert.deepEqual(writes,['torrents/stop']);console.log('PASS category clear/preserve tags, auto-TMM guard, tags preserve category, delayed readback and ambiguous no-replay');

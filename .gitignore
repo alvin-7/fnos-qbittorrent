@@ -1,0 +1,47 @@
+# Local-only material: never upload with a blanket `git add -f`.
+.runtime/
+node_modules/
+dist/
+webui/
+evidence/
+release/
+test-results/
+playwright-report/
+graphify-out/
+__pycache__/
+*.py[cod]
+*.tsbuildinfo
+*.fpk
+*.tar
+*.tar.gz
+*.tgz
+*.zip
+*.log
+*.sock
+*.pid
+.env
+.env.*
+!.env.example
+*credentials*.json
+*password*.txt
+.DS_Store
+Thumbs.db
+# Historical staging trees contain runtime binaries, generated source and private data.
+/fnos-qbittorrent/
+/native-package/
+/tools/fnpack
+# Historical operational docs are retained locally, not part of the public-source set.
+/docs/RELEASE*.md
+/docs/native-*.md
+/docs/NATIVE_TEST_GUIDE.md
+/docs/ADD_SUBMISSION_LIVE_READONLY.md
+/docs/ADD_SUBMISSION_INVESTIGATION.md
+/docs/platform/
+/docs/product/ACCEPTANCE.md
+/docs/product/DELIVERY_PLAN.md
+# Preserve build-input copies, but keep public documentation free of personal paths.
+/docs/product/MOVIEPILOT_IMPLEMENTATION_1_3_0.md
+# Old Docker client harnesses have environment-specific bind defaults; retain locally.
+/tools/verify_connector130.py
+/tools/verify_connector132.py
+/tools/verify_connector135_real.py

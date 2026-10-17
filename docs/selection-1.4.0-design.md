@@ -1,0 +1,7 @@
+# Selection completion 1.4.0
+OpenDesign tooling is unavailable; this additive baseline applies its state and interaction principles without claiming tool use.
+S1 Browse has no selection checkboxes; explicit selection mode has 24px visuals in 44px targets, selected-card and label/category highlights. Desktop sticky toolbar; <=700px fixed bottom sheet with safe-area padding and reserved content space. Controls disabled during mutation.
+S2 All/invert affect visible task snapshot; clear selects none. Resource return resets resource filter. Exit is explicit, disabled during writes.
+S3 Category and tags have separate toolbar buttons and editor dialogs. Category assignment preserves tags; tag replacement preserves category, with explicit replacement/empty-clears warning. Options from real categories/tags API. Auto-TMM category mutation blocked, avoiding implicit moves.
+S4 Snapshot selected hashes before sequential mutation; each hash receives standard qB API writes and bounded torrents/info read-only polling. Never repeat writes after failure. Count confirmed/failed, disclose failed hash prefixes, clear selection after completion (including partial failure) so successful tasks are not accidentally replayed.
+S5 Final immutable package iframe gates: 1440/390 browse/selection/all/invert/clear/start/force/stop/category/tags/return/scroll/overflow, partial failure and no-replay. Preserve separate PASS versus UNVERIFIED for fixture-only versus NAS/physical-device behavior.
