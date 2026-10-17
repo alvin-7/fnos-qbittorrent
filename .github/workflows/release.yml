@@ -1,44 +1,40 @@
 name: Release assets
-run-name: Release assets - ${{ github.event.release.tag_name || inputs.tag }}
+run-name: Release assets - ${{ github.ref_name || inputs.tag }}
 
-# Validate the source checkout and publish only artifacts produced by CI.
-# This workflow never reads ignored local release/ files.
+# A tag push is the release source of truth. The workflow creates the GitHub
+# Release when needed, then uploads only artifacts built in this run.
 on:
-  release:
-    types: [published]
+  push:
+    tags:
+      - 'v*'
   workflow_dispatch:
     inputs:
       tag:
-        description: Existing GitHub Release tag to build (for example v1.4.9)
+        description: Existing tag to build (for example v1.4.9)
         required: true
-        type: string
-      release_asset_path:
-        description: Optional runner-visible asset path to upload; leave empty for no FPK upload
-        required: false
         type: string
 
 permissions:
   contents: write
 
 concurrency:
-  group: release-assets-${{ github.event.release.tag_name || inputs.tag }}
+  group: release-assets-${{ github.ref_name || inputs.tag }}
   cancel-in-progress: false
 
 env:
-  TAG: ${{ github.event.release.tag_name || inputs.tag }}
-  RELEASE_ASSET_PATH: ${{ inputs.release_asset_path || vars.RELEASE_ASSET_PATH || '' }}
+  TAG: ${{ github.ref_name || inputs.tag }}
 
 jobs:
-  build-and-upload:
-    name: Validate source and upload release assets
+  build-and-release:
+    name: Validate source and publish release assets
     runs-on: ubuntu-latest
     steps:
       - name: Validate release tag
         shell: bash
         run: |
           set -euo pipefail
-          [[ "$TAG" =~ ^[A-Za-z0-9._-]+$ ]] || { echo "Invalid release tag: $TAG" >&2; exit 1; }
-          echo "Building tag $TAG"
+          [[ "$TAG" =~ ^v[A-Za-z0-9._-]+$ ]] || { echo "Invalid release tag: $TAG" >&2; exit 1; }
+          echo "Building immutable tag $TAG"
 
       - name: Checkout the release tag
         uses: actions/checkout@v4
@@ -59,8 +55,8 @@ jobs:
           cache: false
 
       - name: Build and verify the source checkout
-        # The helper builds UI and Go gateway/native-control and runs tests;
-        # it explicitly does not build the qBittorrent runtime or a complete FPK.
+        # This deliberately builds only the UI, gateway and native-control.
+        # It does not claim to build qBittorrent or a complete FPK.
         run: python3 tools/build_checkout.py
 
       - name: Create source and validation bundles
@@ -72,39 +68,60 @@ jobs:
           prefix="fnos-qbittorrent-${version}"
           git archive --format=tar.gz --prefix="${prefix}/" --output="dist/${prefix}-source.tar.gz" "$TAG"
           tar -czf "dist/${prefix}-checkout-validation.tar.gz" -C .runtime checkout-build
-          sha256sum dist/* | tee dist/SHA256SUMS
+          sha256sum dist/*.tar.gz | tee dist/SHA256SUMS
           printf '%s\n' \
             "Tag: ${TAG}" \
             "Commit: $(git rev-parse HEAD)" \
             "Source archive: ${prefix}-source.tar.gz" \
             "Validation archive: ${prefix}-checkout-validation.tar.gz" \
             '' \
-            'Boundary:' \
+            'FPK status:' \
+            '- A complete native qBittorrent FPK was NOT rebuilt by this workflow.' \
+            '- The repository does not contain the complete locked compiler/runtime/fnpack closure required for a clean FPK build.' \
+            '- Do not infer an FPK from these archives. A matching FPK, if supplied later, must be manually uploaded and independently SHA256-verified.' \
+            '' \
+            'Validation:' \
             '- UI and Go source checkout build/tests were executed by tools/build_checkout.py.' \
-            '- The qBittorrent native runtime and a complete FPK were NOT rebuilt.' \
-            '- No ignored local release/ asset is read or uploaded by default.' \
-            '- An FPK is uploaded only when RELEASE_ASSET_PATH names a file present in this CI runner.' \
-            > dist/release-boundary.txt
+            '- No ignored local release/ asset is read or uploaded.' \
+            > dist/release-notes.md
 
-      - name: Upload source and validation bundles
+      - name: Create GitHub Release if absent
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          gh release upload "$TAG" dist/* --repo "$GITHUB_REPOSITORY" --clobber
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "Release $TAG already exists; preserving its notes and assets"
+          else
+            gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --verify-tag \
+              --title "$TAG" --notes-file dist/release-notes.md
+          fi
 
-      - name: Upload explicitly staged release asset
-        if: ${{ env.RELEASE_ASSET_PATH != '' }}
+      - name: Upload immutable CI assets and verify checksums
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           set -euo pipefail
-          asset="$RELEASE_ASSET_PATH"
-          [[ -f "$asset" ]] || {
-            echo "RELEASE_ASSET_PATH does not name a file in this CI runner: $asset" >&2
-            echo "The workflow will not use a local ignored release/ package." >&2
-            exit 1
-          }
-          sha256sum "$asset"
-          gh release upload "$TAG" "$asset" --repo "$GITHUB_REPOSITORY" --clobber
+          # Never use --clobber: a same-name asset is immutable. On reruns,
+          # download and verify an existing asset instead of replacing it.
+          for asset in dist/*.tar.gz dist/SHA256SUMS; do
+            name="$(basename "$asset")"
+            expected="$(sha256sum "$asset" | awk '{print $1}')"
+            if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json assets \
+                --jq '.assets[].name' | grep -Fxq "$name"; then
+              mkdir -p .runtime/remote-assets
+              gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --pattern "$name" \
+                --dir .runtime/remote-assets --clobber
+              actual="$(sha256sum ".runtime/remote-assets/$name" | awk '{print $1}')"
+              [[ "$actual" == "$expected" ]] || {
+                echo "Immutable asset checksum mismatch: $name" >&2
+                exit 1
+              }
+              echo "Verified existing asset $name ($actual)"
+            else
+              gh release upload "$TAG" "$asset" --repo "$GITHUB_REPOSITORY"
+              actual="$(sha256sum "$asset" | awk '{print $1}')"
+              echo "Uploaded $name ($actual)"
+            fi
+          done

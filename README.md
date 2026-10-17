@@ -21,6 +21,10 @@ React UI → 同源 /app/fnos-qbittorrent-native/ → 允许的 API
 - 源码保留 Docker 历史路径 `/app/fnos-qbittorrent`；原生构建会统一替换为 `...-native`。不要只改一端。
 - `package.json` 的 1.0.0 是历史 UI 工作区版本，不是 FPK 版本；旧 staging manifest 也不是当前发行元数据。
 
+## GitHub 自动 Release
+
+Tag push 自动发布、资产不可覆盖策略与完整 FPK 构建边界见 [自动 Release 说明](docs/AUTOMATED_RELEASES.md)。当前 CI 只发布可验证的源码和 checkout validation 资产；完整 FPK 仍需手动提供并校验 SHA256。`v1.4.8` 的 tag 早于 workflow，不会被本次修改追触发，不能移动或重建该 tag。
+
 ## 开发与验证
 
 需要 Node（Vite 7 要求兼容版本）、npm、Go、Python 3。真实浏览器测试另需 Google Chrome；Docker 客户端集成需 Docker。使用 PATH 中工具，不依赖某个开发者 home。
