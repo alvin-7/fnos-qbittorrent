@@ -1,5 +1,5 @@
 name: Release assets
-run-name: Release assets - ${{ github.ref_name || inputs.tag }}
+run-name: Release assets - ${{ inputs.tag || github.ref_name }}
 
 # A tag push is the release source of truth. The workflow creates the GitHub
 # Release when needed, then uploads only artifacts built in this run.
@@ -18,11 +18,11 @@ permissions:
   contents: write
 
 concurrency:
-  group: release-assets-${{ github.ref_name || inputs.tag }}
+  group: release-assets-${{ inputs.tag || github.ref_name }}
   cancel-in-progress: false
 
 env:
-  TAG: ${{ github.ref_name || inputs.tag }}
+  TAG: ${{ inputs.tag || github.ref_name }}
 
 jobs:
   build-and-release:
@@ -108,20 +108,19 @@ jobs:
           for asset in dist/*.tar.gz dist/SHA256SUMS; do
             name="$(basename "$asset")"
             expected="$(sha256sum "$asset" | awk '{print $1}')"
-            if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json assets \
-                --jq '.assets[].name' | grep -Fxq "$name"; then
-              mkdir -p .runtime/remote-assets
-              gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --pattern "$name" \
-                --dir .runtime/remote-assets --clobber
-              actual="$(sha256sum ".runtime/remote-assets/$name" | awk '{print $1}')"
-              [[ "$actual" == "$expected" ]] || {
-                echo "Immutable asset checksum mismatch: $name" >&2
-                exit 1
-              }
-              echo "Verified existing asset $name ($actual)"
-            else
+            names="$(gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json assets --jq '.assets[].name')"
+            if ! grep -Fxq "$name" <<< "$names"; then
               gh release upload "$TAG" "$asset" --repo "$GITHUB_REPOSITORY"
-              actual="$(sha256sum "$asset" | awk '{print $1}')"
-              echo "Uploaded $name ($actual)"
             fi
+            # Read back both new and existing remote bytes, never overwrite.
+            verify_dir="$(mktemp -d)"
+            gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --pattern "$name" \
+              --dir "$verify_dir"
+            actual="$(sha256sum "$verify_dir/$name" | awk '{print $1}')"
+            [[ "$actual" == "$expected" ]] || {
+              echo "Immutable asset checksum mismatch: $name" >&2
+              exit 1
+            }
+            rm -rf "$verify_dir"
+            echo "Verified remote asset $name ($actual)"
           done
