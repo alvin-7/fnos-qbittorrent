@@ -12,7 +12,8 @@ import (
 )
 
 // Business writes recheck current fnOS grants/ACL; picker choices are never tokens.
-// Existing tasks make path preference changes fail closed rather than risk moves.
+// qBittorrent owns existing task locations; this guard only validates paths submitted
+// for future/default behavior and preserves the category auto-TMM safety check.
 func (s *directoryService) guard(next http.Handler, w http.ResponseWriter, r *http.Request) bool {
 	route := strings.TrimPrefix(r.URL.Path, prefix+"/api/v2/")
 	if route != "torrents/add" && route != "app/setPreferences" && route != "torrents/createCategory" && route != "torrents/editCategory" {
@@ -67,18 +68,24 @@ func (s *directoryService) guard(next http.Handler, w http.ResponseWriter, r *ht
 			w.WriteHeader(400)
 			return false
 		}
-		changed := false
-		var current map[string]json.RawMessage
-		for _, key := range []string{"save_path", "temp_path", "temp_path_enabled"} {
-			if raw, ok := prefs[key]; ok {
-				if current == nil && !read("app/preferences", &current) {
-					directoryError(w, errSource)
-					return false
-				}
-				if !bytes.Equal(raw, current[key]) {
-					changed = true
-				}
-				if key != "temp_path_enabled" {
+		// Preferences only affect future/default placement. Never inspect existing
+		// tasks here: qBittorrent keeps their save/content/temp paths unchanged.
+		if raw, ok := prefs["save_path"]; ok {
+			var p string
+			if json.Unmarshal(raw, &p) != nil || p == "" {
+				directoryError(w, errDirectory)
+				return false
+			}
+			paths = append(paths, p)
+		}
+		var tempEnabled bool
+		if raw, ok := prefs["temp_path_enabled"]; ok {
+			if json.Unmarshal(raw, &tempEnabled) != nil {
+				directoryError(w, errDirectory)
+				return false
+			}
+			if tempEnabled {
+				if raw, ok := prefs["temp_path"]; ok {
 					var p string
 					if json.Unmarshal(raw, &p) != nil || p == "" {
 						directoryError(w, errDirectory)
@@ -87,13 +94,25 @@ func (s *directoryService) guard(next http.Handler, w http.ResponseWriter, r *ht
 					paths = append(paths, p)
 				}
 			}
-		}
-		if changed {
-			var tasks []json.RawMessage
-			if !read("torrents/info", &tasks) || len(tasks) > 0 {
-				w.WriteHeader(409)
-				json.NewEncoder(w).Encode(map[string]string{"code": "PATH_CHANGE_RISK"})
+		} else if _, ok := prefs["temp_path"]; ok {
+			// A temp_path-only update must honor qB's current enablement, but
+			// reading preferences is never coupled to the task list.
+			var current struct {
+				Enabled bool `json:"temp_path_enabled"`
+			}
+			if !read("app/preferences", &current) {
+				directoryError(w, errSource)
 				return false
+			}
+			tempEnabled = current.Enabled
+			if tempEnabled {
+				raw := prefs["temp_path"]
+				var p string
+				if json.Unmarshal(raw, &p) != nil || p == "" {
+					directoryError(w, errDirectory)
+					return false
+				}
+				paths = append(paths, p)
 			}
 		}
 	} else if route == "torrents/add" {
