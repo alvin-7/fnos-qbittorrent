@@ -1,5 +1,15 @@
 {
   "scope": "partial native build inputs; NOT complete native FPK closure",
+  "status": "blocked",
+  "audit": {
+    "source_archives_verified_in_temporary_cache": true,
+    "verified_at": "2026-10-18",
+    "candidate_oci_image": "ghcr.io/qbittorrent/docker-qbittorrent-nox:5.2.4-1",
+    "candidate_oci_local_config_digest": "sha256:dd9d91f629c25ea0b7758d3b618ac93c8b254e7b42a09b7f9f9c9b21828f1ba0",
+    "candidate_oci_registry_digest": null,
+    "candidate_oci_accepted_for_ci": false,
+    "reason": "The local image has no RepoDigest and a fresh GHCR pull was unavailable; a local image/config digest is not a public registry content digest."
+  },
   "source_inputs": [
     {
       "file": "qBittorrent-release-5.2.4.tar.gz",
@@ -306,6 +316,13 @@
       "license": "GPL-3.0-or-later"
     }
   ],
+  "fnpack": {
+    "path": "tools/fnpack",
+    "sha256": "54b97fa7b70968c4d05c79840f5daeff508957d0bb2062fdb0376d00d9615c93",
+    "provenance": null,
+    "accepted_for_ci": false,
+    "reason": "The checkout contains an executable, but no official public source/provenance lock has been established."
+  },
   "blocked": [
     "Exact complete compiler/dev APK closure and Qt private ABI bootstrap unavailable in public checkout",
     "Runtime extraction/ownership/TLS/CA source closure and clean FPK assembly not implemented or verified",

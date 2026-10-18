@@ -54,9 +54,7 @@ CONNECTOR_TEST_BIND=<本机可达的测试接口地址> python3 tools/verify_con
 
 ## 原生构建与复现边界
 
-干净源码应用编译入口：`python3 tools/build_checkout.py`，不读取历史 FPK，可生成原生前缀 UI/gateway/native-control 并执行测试；不生成 qB 运行时或完整 FPK。部分上游输入可用 `tools/fetch_native_inputs.py` 按 `docs/NATIVE_INPUTS.lock.json` 获取并校验。完整原生构建仍 **blocked**，不得称为可复现。
-
-`python3 tools/build_native_1_4_0.py` 是 **不可变历史候选构建入口**，不是一键从空仓库构建：依赖 1.3.9 FPK、`release/native-1.1.4-sources`、本地 fnpack 和运行时输入；已有输出时拒绝覆盖。详见 [源码交付](docs/SOURCE_DELIVERY.md)。不要为试运行删除旧包或工作目录。Git checkout 只包含审阅后的源码，不携带数 GB 运行时/源码归档；不能宣称完整离线复现。旧工具原路径保留，见 [工具索引](tools/README.md)。
+A clean native build is intentionally still fail-closed. `docs/NATIVE_INPUTS.lock.json` is a partial manifest, not a build closure: the source archive hashes are usable, but the compiler/dev APK set, Qt private ABI bootstrap, musl/Qt runtime assembly, APKBUILD/patch closure, and official hash-locked `fnpack` are missing. `tools/check_native_ci_inputs.py` verifies the SHA-256 of every downloaded/cache input and refuses an absent or unlocked `fnpack`; it does not turn a historical FPK or local runtime into a CI input. Do not claim a reproducible FPK until the pinned public closure is added and a clean checkout has passed build, package audit, and smoke.
 
 ## 使用及 MoviePilot
 
