@@ -20,7 +20,26 @@ env:
   TAG: ${{ github.ref_name }}
 
 jobs:
+  create-release:
+    name: Create release for manual package upload
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create GitHub Release if absent
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$TAG" =~ ^v[A-Za-z0-9._-]+$ ]] || exit 1
+          if ! gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --verify-tag \
+              --title "飞牛 PT 下载 $TAG" \
+              --notes "原生 x86_64 qBittorrent 5.2.4，支持 PT 下载与保种、限速、分享率、标签分类和 MoviePilot。安装包由维护者手动上传；仅有源码下载项不表示 FPK 已就绪。NAS 和物理手机兼容性边界见项目文档。"
+          fi
+
   build-and-release:
+    if: ${{ vars.ENABLE_NATIVE_FPK_BUILD == 'true' }}
+    needs: create-release
     name: Build and publish x86_64 FPK
     runs-on: ubuntu-latest
     steps:
