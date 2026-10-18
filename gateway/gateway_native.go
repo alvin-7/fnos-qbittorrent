@@ -20,7 +20,7 @@ func gatewayConnectionContext(ctx context.Context, c net.Conn) context.Context {
 var nativeReadRoutes = map[string]bool{
 	"app/version": true, "app/webapiVersion": true, "app/preferences": true,
 	"transfer/info": true, "transfer/speedLimitsMode": true,
-	"torrents/info": true, "torrents/properties": true, "torrents/trackers": true,
+	"torrents/info": true, "torrents/properties": true, "torrents/trackers": true, "gateway/analysis/sites": true,
 	"torrents/webseeds": true, "torrents/files": true, "torrents/pieceStates": true,
 	"torrents/pieceHashes": true, "sync/torrentPeers": true, "diagnostics/add": true,
 	"torrents/categories": true, "torrents/tags": true, "connector/status": true, "connector/discover": true,
@@ -111,7 +111,14 @@ func nativeGatewayHandler(proxy http.Handler) http.Handler {
 			w.WriteHeader(204)
 			return
 		}
+		if strings.HasPrefix(r.URL.Path, prefix+"/gateway/directories/") {
+			if r.Method != "POST" || r.URL.RawPath != "" { reject("native_policy_forbidden"); return }
+			r.Header.Del("Cookie")
+			proxy.ServeHTTP(w,r)
+			return
+		}
 		route := strings.TrimPrefix(r.URL.Path, prefix+"/api/v2/")
+		if strings.EqualFold(route,"app/getDirectoryContent") || strings.ContainsAny(route,"%\\\\") || r.URL.RawPath!="" { reject("native_policy_forbidden"); return }
 		if route == r.URL.Path {
 			http.NotFound(w, r)
 			return

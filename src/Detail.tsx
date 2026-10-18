@@ -1,4 +1,5 @@
 import {useEffect,useState} from 'react';
+import {usePageScrollLock} from './usePageScrollLock';
 import {api} from './main';
 import {bytes,stateName,redact} from './TorrentList';import {runTorrentAction} from './pt';
 const value=(n:unknown)=>n===undefined||n===null||typeof n==='number'&&n<0?'—':String(n);
@@ -7,6 +8,7 @@ const limit=(n:number)=>n===undefined?'—':n<=0?'不限速':bytes(n)+'/s';
 // qB release-5.2.4 TrackerEndpointState; 0 is only pseudo-tracker disabled.
 const trackerState=(n:number)=>({0:'已禁用',1:'未联系',2:'工作正常',4:'未工作',5:'Tracker 返回错误',6:'无法连接'} as Record<number,string>)[n]||'未知状态';
 export function Detail({hash,close}:{hash:string,close:()=>void}){
+ const [phone,setPhone]=useState(()=>window.innerWidth<1000);useEffect(()=>{const update=()=>setPhone(window.innerWidth<1000);window.addEventListener('resize',update);return()=>window.removeEventListener('resize',update)},[]);usePageScrollLock(phone);
  const [busy,setBusy]=useState(false),[notice,setNotice]=useState('');const [p,setP]=useState<any>(),[t,setT]=useState<any>(),[files,setFiles]=useState<any[]>([]),[trackers,setTrackers]=useState<any[]>([]),[global,setGlobal]=useState<any>(),[error,setError]=useState(''),[warnings,setWarnings]=useState<string[]>([]);
  useEffect(()=>{let active=true;const load=async()=>{
  const paths=['torrents/properties?hash='+hash,'torrents/info?hashes='+hash,'torrents/files?hash='+hash,'torrents/trackers?hash='+hash,'transfer/info'];
@@ -16,7 +18,7 @@ export function Detail({hash,close}:{hash:string,close:()=>void}){
  const metric=(label:string,v:unknown)=><p className="wrap">{label}：{value(v)}</p>;
  const metadata=p?.has_metadata===true?'已获取':p?.has_metadata===false||/metaDL/i.test(t?.state||'')?'等待获取（API 未提供百分比）':'未知';
  const currentRatio=Number(p?.share_ratio??t?.ratio);const ratioLimit=Number(p?.max_ratio??t?.max_ratio);const ratioEnabled=Number.isFinite(ratioLimit)&&ratioLimit>0;const ratioPolicyPaused=ratioEnabled&&currentRatio>=ratioLimit&&/^(stopped|paused)/.test(t?.state||'');
- return <div className="overlay" onClick={e=>{if(e.target===e.currentTarget)close()}}><section role="dialog" aria-modal="true" aria-label="任务详情" aria-busy={busy} className="modal persistent-close"><div className="modal-head"><h2>任务详情</h2><button aria-label="关闭任务详情" onClick={close}>关闭</button></div>
+ return <div className="overlay detail-panel" onClick={e=>{if(e.target===e.currentTarget)close()}}><section role="dialog" aria-modal="true" aria-label="任务详情" aria-busy={busy} className="modal persistent-close"><div className="modal-head"><h2>任务详情</h2><button aria-label="关闭任务详情" onClick={close}>关闭</button></div>
  {error&&<p role="alert" className="error">{redact(error)}</p>}{warnings.map(w=><p role="alert" className="error" key={w}>{w}（保留上次数据，可能已过时）</p>)}
  {!p&&!t?<p>加载详情…</p>:<>
  <h3 className="wrap">{redact(t?.name||'任务')}</h3>{metric('真实状态',t?`${stateName(t)} (${t.state})`:'暂不可得')}

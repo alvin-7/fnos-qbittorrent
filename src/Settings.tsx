@@ -1,10 +1,13 @@
 import {MoviePilot} from './MoviePilot';
+import {DirectoryButton} from './DownloadDirectoryPicker';
+import {usePageScrollLock} from './usePageScrollLock';
 import {useEffect,useState} from 'react';import {api} from './main';import {speedValues,shareRatioValues} from './pt';
 const native=(import.meta as any).env.VITE_NATIVE==='1';
 const schedulerDays={0:'每天',1:'工作日',2:'周末',3:'周一',4:'周二',5:'周三',6:'周四',7:'周五',8:'周六',9:'周日'} as Record<number,string>;
 function checkedDays(v:unknown){return typeof v==='number'&&v>=0&&v<=9?v:0}
 function allowedPath(value:string,root:string){return value.startsWith('/')&&!/[\0\r\n]/.test(value)&&!value.split('/').includes('..')&&(value===root||value.startsWith(root+'/'))}
 export function Settings({close}:{close:()=>void}){
+ usePageScrollLock();
  const [prefs,setPrefs]=useState<any>(),[advanced,setAdvanced]=useState(false),[error,setError]=useState(''),[message,setMessage]=useState(''),[busy,setBusy]=useState(false),[revision,setRevision]=useState(0);
  useEffect(()=>{void Promise.all([api('app/preferences'),api('transfer/speedLimitsMode')]).then(([p,m])=>setPrefs({...p,current_alt:Number(m)===1})).catch(e=>setError(e.message))},[]);
  return <div className="overlay" onClick={e=>{if(e.target===e.currentTarget&&!busy)close()}}><section className="modal persistent-close" role="dialog" aria-modal="true" aria-label="设置" aria-busy={busy}><div className="modal-head"><h2>{advanced?'高级设置':'设置'}</h2><button aria-label="关闭设置" onClick={close} disabled={busy}>关闭</button></div>
@@ -14,8 +17,8 @@ export function Settings({close}:{close:()=>void}){
  try{if(advanced){values={dht:d.has('dht'),pex:d.has('pex'),lsd:d.has('lsd'),upnp:d.has('upnp'),queueing_enabled:d.has('queueing_enabled'),max_connec:Number(d.get('max_connec')),...speedValues(d),...shareRatioValues(d)}}
  else{
  const raw=String(d.get('listen_port'));const port=Number(raw);if(!/^\d+$/.test(raw)||!Number.isInteger(port)||port<1||port>65535){setError('BT 监听端口必须为 1–65535 的整数');return}
- const path=String(d.get('save_path'));if(!allowedPath(path,native?prefs.save_path:'/downloads')||!allowedPath(String(d.get('temp_path')),native?prefs.save_path:'/downloads')){setError('路径必须位于授权下载共享目录内');return}
- values={listen_port:port,random_port:false,save_path:path,temp_path:String(d.get('temp_path')),temp_path_enabled:true};
+ const path=String(d.get('save_path'));if(!native&&(!allowedPath(path,'/downloads')||!allowedPath(String(d.get('temp_path')),'/downloads'))){setError('路径必须位于授权下载共享目录内');return}
+ values={listen_port:port,random_port:false,save_path:path,temp_path:String(d.get('temp_path')),temp_path_enabled:d.has('temp_path_enabled')};
  }
  }catch(e){setError((e as Error).message);return}
  setBusy(true);try{await api('app/setPreferences',new URLSearchParams({json:JSON.stringify(values)}));const actual=await api('app/preferences');for(const key of Object.keys(values)){if(key==='max_ratio'&&values.max_ratio_enabled===false&&actual.max_ratio_enabled===false)continue;if(actual[key]!==values[key])throw Error('保存未生效：'+key);}setPrefs({...actual,current_alt:Number(await api('transfer/speedLimitsMode'))===1});setRevision(x=>x+1);setMessage('设置已保存并核验')}catch(e){setError((e as Error).message)}finally{setBusy(false)}
@@ -24,6 +27,6 @@ export function Settings({close}:{close:()=>void}){
  <p id="bt-port-help">用于 BT Peer 入站 TCP/UDP，不是 WebUI 管理端口（Native 内部管理端口为 18080，不在此修改）。建议固定高位端口 49160，避免 6881–6889 等常见禁用范围；具体以站点规则为准，不保证所有 Tracker 接受或下载速度。</p>
  <p role="status">实际 preferences：listen_port: {String(prefs.listen_port)}；random_port: {String(prefs.random_port)}。保存基本设置后固定端口（random_port=false）。</p>
  <p>现有端口不会自动迁移，点击保存才修改。如有 NAS 防火墙或路由器映射，请另行同步 BT TCP/UDP 端口，勿开放管理端口。DHT / PeX / LSD / UPnP 不因修改端口而开启。</p>
- <p>限速为 0 表示不限速。所有路径为{native?'授权共享目录内的本机':'容器内'}路径。</p><p>全局/时段限速请进入高级设置；保存基本设置不修改限速或分享率。</p><label>默认下载路径<input name="save_path" defaultValue={prefs.save_path} required pattern={native?'/.*':'/downloads(/.*)?'}/></label><label>临时下载路径<input name="temp_path" defaultValue={prefs.temp_path} required pattern={native?'/.*':'/downloads(/.*)?'}/></label><p className="security-note">Host 与 CSRF 防护仍强制执行；Native 入口由飞牛管理员会话授权。</p></>}
+ <p>限速为 0 表示不限速。所有路径为{native?'授权共享目录内的本机':'容器内'}路径。</p><p>全局/时段限速请进入高级设置；保存基本设置不修改限速或分享率。</p><label>默认下载路径<input id="settings-save-path" name="save_path" defaultValue={prefs.save_path} required pattern={native?'/.*':'/downloads(/.*)?'}/></label><DirectoryButton initialPath={()=> (document.getElementById('settings-save-path') as HTMLInputElement)?.value||''} onConfirm={path=>{(document.getElementById('settings-save-path') as HTMLInputElement).value=path}}/><label>临时下载路径<input id="settings-temp-path" name="temp_path" defaultValue={prefs.temp_path} required pattern={native?'/.*':'/downloads(/.*)?'}/></label><DirectoryButton initialPath={()=> (document.getElementById('settings-temp-path') as HTMLInputElement)?.value||''} onConfirm={path=>{(document.getElementById('settings-temp-path') as HTMLInputElement).value=path}}/><label className="check"><input type="checkbox" name="temp_path_enabled" defaultChecked={prefs.temp_path_enabled}/>启用临时下载目录</label><p className="security-note">Host 与 CSRF 防护仍强制执行；Native 入口由飞牛管理员会话授权。</p></>}
  <div className="modal-actions"><button type="button" disabled={busy} onClick={()=>{setAdvanced(!advanced);setMessage('')}}>{advanced?'基本设置':'高级设置'}</button><button disabled={busy} className="primary">保存设置</button></div></form>}{native&&advanced&&<MoviePilot/>}</section></div>
 }

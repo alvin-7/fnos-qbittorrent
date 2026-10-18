@@ -128,11 +128,16 @@ func main() {
 			log.Printf("connector startup unavailable; configuration requires review")
 		}
 		defer connector.close()
+		directories := newDirectoryService(nil)
+		analysis := newSiteAnalysis(proxy)
 		routed := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if r.URL.Path == prefix+"/api/v2/gateway/analysis/sites" { analysis.ServeHTTP(w,r); return }
+			if strings.HasPrefix(r.URL.Path,prefix+"/gateway/directories/") { directories.ServeHTTP(w,r); return }
 			if strings.HasPrefix(r.URL.Path, prefix+"/api/v2/connector/") {
 				connector.management(w, r)
 				return
 			}
+			if !directories.guard(proxy,w,r) { return }
 			proxy.ServeHTTP(w, r)
 		})
 		handler = nativeGatewayHandler(routed)

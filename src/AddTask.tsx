@@ -1,5 +1,7 @@
 import {useEffect,useRef,useState} from 'react';
 import {api} from './main';
+import {DirectoryButton} from './DownloadDirectoryPicker';
+import {usePageScrollLock} from './usePageScrollLock';
 import {stateName,redact,type Torrent} from './TorrentList';
 import {validateLabel} from './tags';
 export function validSource(value:string){try{const u=new URL(value);return (u.protocol==='http:'||u.protocol==='https:')?!!u.hostname:u.protocol==='magnet:'&&u.searchParams.getAll('xt').some(x=>/^urn:bt(?:ih:[a-z0-9]+|mh:[a-f0-9]+)$/i.test(x))}catch{return false}}
@@ -21,6 +23,7 @@ export function additionPayload(data:FormData){
  const body=new FormData();for(const [k,v] of Object.entries(fields))body.set(k,String(v));for(const file of files)body.append('torrents',file);return body;
 }
 export function AddTask({close,done,open=true}:{close:()=>void,done:()=>Promise<void>,open?:boolean}){
+ usePageScrollLock(open);
  const native=(import.meta as any).env.VITE_NATIVE==='1';
  const [savepath,setSavepath]=useState(native?'':'/downloads'),edited=useRef(false),sending=useRef(false),alive=useRef(true);
  const recent=useRef<{before:string[],cursor:string,at:number}|null>(null);
@@ -67,7 +70,7 @@ export function AddTask({close,done,open=true}:{close:()=>void,done:()=>Promise<
  }catch(e){if(alive.current)setError(redact((e as Error).message)+(sent?'；请求可能已送达，请先检查任务列表，未自动重试。':''))}finally{sending.current=false;if(alive.current){setBusy(false);setStage('')}}}}>
  <div className="modal-head"><h2>添加任务</h2><button type="button" onClick={close}>关闭</button></div>
  <fieldset disabled={busy} style={{border:0,padding:0,margin:0}}><label>磁力链接或 BT 下载链接（HTTP/HTTPS）<textarea name="urls" rows={3} placeholder="magnet:?xt=urn:btih:… 或 https://可信来源/rss?id=…"/></label>
- <label>种子文件<input type="file" accept=".torrent" name="torrents" multiple/></label><label>保存位置<input name="savepath" value={savepath} onChange={e=>{edited.current=true;setSavepath(e.target.value)}} required/></label>
+ <label>种子文件<input type="file" accept=".torrent" name="torrents" multiple/></label><label>保存位置<input name="savepath" value={savepath} onChange={e=>{edited.current=true;setSavepath(e.target.value)}} required/></label><DirectoryButton initialPath={()=>savepath} onConfirm={path=>{edited.current=true;setSavepath(path)}}/>
  <div className="form-grid"><label>分类（可选）<input name="category" placeholder="MoviePilot 分类"/></label><label>标签（可选，逗号分隔）<input name="tags" placeholder="电影, 4K"/></label></div>
  <label className="check"><input type="checkbox" name="stopped"/>添加后保持暂停</label></fieldset><p>默认请求开始下载，实际状态以 qB 返回为准。只添加有权下载的内容；不修改私有种子或网络发现设置。</p>
  {error&&<p role="alert" className="error danger-text">{error}</p>}{stage&&<p role="status">{stage}</p>}{result&&<p role="status">{result}</p>}{diagnostic&&<p>{diagnostic}</p>}{hasRecent&&<p>最近请求：{new Date(recent.current!.at).toLocaleTimeString()}；本页面关闭再打开保留结果，重新加载页面后清除。</p>}{hasRecent&&<button type="button" disabled={busy} onClick={()=>void refreshDiagnostics()}>刷新诊断</button>}<button className="primary" type="submit" disabled={busy}>{busy?'正在提交并观察…':'开始添加'}</button>

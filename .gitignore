@@ -45,3 +45,16 @@ Thumbs.db
 /tools/verify_connector130.py
 /tools/verify_connector132.py
 /tools/verify_connector135_real.py
+# One-off local preparation and immutable overlay tools.
+/tools/adjust_exact158_harness.py
+/tools/create_picker157_inputs.py
+/tools/finalize_picker160.py
+/tools/prepare_*.py
+/tools/run_exact_path*.py
+/tools/verify_workspace15[789]_production.py
+/tools/verify_workspace160_production.py
+# Raw design images and machine-specific metadata remain local.
+/docs/design/**/*.png
+/docs/design/**/project.json
+/docs/design/**/registration.json
+/docs/design/**/registered-files.json

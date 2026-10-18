@@ -2,7 +2,7 @@
 
 面向 fnOS 的正式命名 PT 下载应用：x86_64 原生 qBittorrent 5.2.4，PT 优先；DHT/PeX/LSD/UPnP 关闭；支持保种、限速、分享率、标签分类与 MoviePilot 入口。原创代码 GPL-3.0-or-later，署名 alvin-7。
 
-当前本地构建版本为 **1.4.8**（strip 包体优化），对应 FPK 与完整源码包均为本地构建产物。显示名、应用 ID、gatewayPrefix、数据目录保持不变。包内发行说明明确：真实 NAS、物理手机、路径映射和完整外部发行合规尚未验收。strip 不保证 RSS 下降；体积、ELF sections 和最终包回归证据见 [1.4.8 发行说明](docs/STRIP_1_4_8.md)。
+当前正式版本号为 **1.5.12**。本地 FPK 使用锁定的 1.4.8 原生运行时，重新编译当前全部 UI、gateway 与生命周期控制代码；**不是 clean runtime rebuild**。包含授权目录多根合并、仅执行祖先遍历、目录诊断、独立存储/保种分析、顶部状态导航及陈旧响应保护。显示名、应用 ID、gatewayPrefix、数据目录保持不变。真实 NAS、物理手机、路径映射与完整外部发行验收尚未闭环，版本号不表示这些验收通过。详见 [1.5.12 发布验收](docs/V1_5_12_ACCEPTANCE.md)。
 
 支持 URL（不要求 `.torrent` 后缀）/磁力/种子文件添加、状态与详情、PT 暂停/普通开始/强制开始、分享率和定时限速、分类/标签浏览与批量操作。DHT、PeX、LSD、UPnP 默认关闭；保留 private 标记，不添加公共 tracker。202 只表示接受请求，不代表下载任务已出现；失败反馈不能证明站点返回了哪种页面。
 
@@ -19,11 +19,11 @@ React UI → 同源 /app/fnos-qbittorrent-native/ → 允许的 API
 - `native/`：配置及进程生命周期；`tools/`：构建、来源审计和隔离回归入口；`tests/`：浏览器/真实后端 fixtures。
 - qB 原生运行时仍依赖 Qt、libtorrent、musl、TLS 插件及 CA；移除上游页面不等于移除 Qt 或许可证责任。
 - 源码保留 Docker 历史路径 `/app/fnos-qbittorrent`；原生构建会统一替换为 `...-native`。不要只改一端。
-- `package.json` 的 1.0.0 是历史 UI 工作区版本，不是 FPK 版本；旧 staging manifest 也不是当前发行元数据。
+- `package.json` 与当前发布版本统一为 1.5.12；历史 staging manifest 不代表当前发行元数据。
 
 ## GitHub 自动 Release
 
-仅 `v*` tag push 触发自动发布。成功时 Release 只包含 CI 真实构建并审计过的 x86_64 FPK 与对应 SHA256；源码保留在 Git，不上传 source/checkout-validation archives。完整闭包缺失时 CI fail-closed，不生成或上传假包。构建边界与锁定输入见 [自动 Release 说明](docs/AUTOMATED_RELEASES.md)。现有 `v1.4.8` tag 不移动、不覆盖、不会被重建；需从包含新 workflow 的提交创建新 tag。
+仅 `v*` tag push 触发自动发布：独立任务先创建 Release，维护者手动上传本地安装包。可选原生 CI 构建仅在仓库变量 `ENABLE_NATIVE_FPK_BUILD=true` 时运行，完整输入闭包不足会 fail-closed；不会从开发机读取忽略的 release/，也不会上传假包。空 Release 或 Git tag 不等于 FPK 已上传。分发 FPK 时必须同时提供匹配的完整源码包及 SHA256。构建边界见 [自动 Release 说明](docs/AUTOMATED_RELEASES.md)。历史 tag 与本地发布资产不覆盖。
 
 ## 开发与验证
 

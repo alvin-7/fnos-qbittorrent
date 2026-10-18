@@ -80,6 +80,7 @@ func (t *nativeTransport) authenticate() bool {
 func (t *nativeTransport) RoundTrip(r *http.Request) (*http.Response, error) {
 	t.Lock()
 	defer t.Unlock()
+	if strings.EqualFold(r.URL.Path,"/api/v2/app/getDirectoryContent") { return nativePolicyResponse(), nil }
 	if strings.HasPrefix(r.URL.Path, "/api/v2/auth/") {
 		return nativePolicyResponse(), nil
 	}

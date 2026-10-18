@@ -14,6 +14,7 @@ async function gatewayToken(){
  })().finally(()=>{bootstrap=undefined});
  return bootstrap;
 }
+export async function directoryMarker(){return (import.meta as any).env.VITE_NATIVE==='1'?'gateway-request-v1':await gatewayToken()}
 export async function api(path:string,body?:URLSearchParams|FormData){
  const gateway=!!appBase();
  const method=body?'POST':'GET';
@@ -25,7 +26,7 @@ export async function api(path:string,body?:URLSearchParams|FormData){
   token='';
   if(method==='GET')r=await request();
  }
- if(!r.ok){if(path==='connector/configure'&&r.status===409){let reason:unknown;try{reason=(await r.json()).reason}catch{}throw Object.assign(new Error(connectorFailure(reason)),{code:409,stage:'connector_configure'})}if(r.status===401)throw Object.assign(new Error('qB 拒绝请求（401，Host/CSRF 校验）'),{code:401});if(r.status===403)throw Object.assign(gateway?await forbidden(r):new Error('需要登录 qBittorrent（403）'),{code:403});throw new Error(`请求失败 (${r.status})`)}
+ if(!r.ok){if(['torrents/add','app/setPreferences','torrents/createCategory','torrents/editCategory'].includes(path)&&[404,409,422,503,504].includes(r.status)){try{const d=await r.clone().json();const m:Record<string,string>={AUTH_USER_ACL_DENIED:'当前用户的目录 ACL 未通过（AUTH_USER_ACL_DENIED）',AUTH_PACKAGE_READ_DENIED:'应用运行账号无目录读取权限（AUTH_PACKAGE_READ_DENIED）',AUTH_MOUNT_UNAVAILABLE:'授权目录不存在或挂载不可用（AUTH_MOUNT_UNAVAILABLE）',AUTH_MOUNT_REJECTED:'目录挂载身份变化或路径链接被安全拒绝（AUTH_MOUNT_REJECTED）',AUTH_PRIVATE_ROOTS_EXCLUDED:'授权仅包含应用私有目录，已安全排除（AUTH_PRIVATE_ROOTS_EXCLUDED）',AUTH_TOKEN_MISSING:'启动环境缺少平台授权认证（AUTH_TOKEN_MISSING）',AUTH_TOKEN_REJECTED:'平台授权认证不可用（AUTH_TOKEN_REJECTED）',AUTH_SCOPE_DENIED:'应用查询授权权限不足（AUTH_SCOPE_DENIED）',AUTH_API_UNAVAILABLE:'系统不提供授权接口（AUTH_API_UNAVAILABLE）',AUTH_REQUEST_INVALID:'授权查询参数无效（AUTH_REQUEST_INVALID）',AUTH_RESPONSE_INVALID:'授权响应无法解析（AUTH_RESPONSE_INVALID）',AUTH_ROOTS_INACCESSIBLE:'授权记录存在但当前权限或挂载不可访问（AUTH_ROOTS_INACCESSIBLE）',DIRECTORY_UNAVAILABLE:'目录不可用或未授权',AUTH_SOURCE_UNAVAILABLE:'当前平台无法核实本应用授权目录',READ_ONLY:'目录只读',PATH_CHANGE_RISK:'现有任务可能受路径变更影响，已阻止保存',BROWSE_TIMEOUT:'目录核验超时'};if(m[d.code])throw Object.assign(Error(m[d.code]),{directoryPolicy:true})}catch(e){if((e as any).directoryPolicy)throw e}}if(path==='connector/configure'&&r.status===409){let reason:unknown;try{reason=(await r.json()).reason}catch{}throw Object.assign(new Error(connectorFailure(reason)),{code:409,stage:'connector_configure'})}if(r.status===401)throw Object.assign(new Error('qB 拒绝请求（401，Host/CSRF 校验）'),{code:401});if(r.status===403)throw Object.assign(gateway?await forbidden(r):new Error('需要登录 qBittorrent（403）'),{code:403});throw new Error(`请求失败 (${r.status})`)}
  if(gateway&&path==='auth/logout')token='';
  const text=await r.text();try{return JSON.parse(text)}catch{return text}
 }

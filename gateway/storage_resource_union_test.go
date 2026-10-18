@@ -1,0 +1,3 @@
+package main
+import("encoding/json";"os";"path/filepath";"testing")
+func TestStorageResourceShareUnion(t *testing.T){b:=t.TempDir();own:=filepath.Join(b,"downloads");other:=filepath.Join(b,"qBittorrent");os.Mkdir(own,0700);os.Mkdir(other,0700);t.Setenv("TRIM_DATA_SHARE_PATHS",own);s:=newDirectoryService(&mockDirectoryProvider{paths:[]string{other}});w:=directoryCall(s,"storage",map[string]any{});var d struct{Volumes []storageVolume};json.Unmarshal(w.Body.Bytes(),&d);n:=0;for _,v:=range d.Volumes{n+=len(v.Roots)};if w.Code!=200||n!=2{t.Fatalf("storage must include same authorized resource union: status=%d roots=%d",w.Code,n)}}

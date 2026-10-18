@@ -423,7 +423,7 @@ func (c *connector) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	route := strings.TrimPrefix(r.URL.Path, "/api/v2/")
-	if route == r.URL.Path {
+	if route == r.URL.Path || strings.EqualFold(route, "app/getDirectoryContent") {
 		deny(404)
 		return
 	}

@@ -1,0 +1,248 @@
+{
+  "source": "Exact registered OpenDesign artifacts; browser setContent, no NAS calls",
+  "results": [
+    {
+      "device": "desktop",
+      "name": "no horizontal overflow",
+      "status": "passed"
+    },
+    {
+      "device": "desktop",
+      "name": "one runtime Dock; no duplicate sidebar brand",
+      "status": "passed"
+    },
+    {
+      "device": "desktop",
+      "name": "analysis is independent; Dock navigation preserves task filters and scroll",
+      "status": "passed"
+    },
+    {
+      "device": "desktop",
+      "name": "search and empty feedback",
+      "status": "passed"
+    },
+    {
+      "device": "desktop",
+      "name": "status filter is single-source navigation",
+      "status": "passed"
+    },
+    {
+      "device": "desktop",
+      "name": "unified filter drawer returns to same task list",
+      "status": "passed"
+    },
+    {
+      "device": "desktop",
+      "name": "selection mode owns checkbox and batch bar",
+      "status": "passed"
+    },
+    {
+      "device": "desktop",
+      "name": "selection + batch tag persists",
+      "status": "passed"
+    },
+    {
+      "device": "desktop",
+      "name": "detail, Tracker, seeding actions, adjustable panel",
+      "status": "passed"
+    },
+    {
+      "device": "desktop",
+      "name": "add validation; directory failure; nested back retains form and lock",
+      "status": "passed"
+    },
+    {
+      "device": "desktop",
+      "name": "settings + MoviePilot failure + opaque Dock",
+      "status": "passed"
+    },
+    {
+      "device": "desktop",
+      "name": "empty, loading, error and retry states clickable",
+      "status": "passed"
+    },
+    {
+      "device": "desktop",
+      "name": "end-of-list scroll clearance",
+      "status": "passed"
+    },
+    {
+      "device": "desktop",
+      "name": "add example task and processing feedback",
+      "status": "passed"
+    },
+    {
+      "device": "desktop",
+      "name": "Dock and selection touch targets >=44px",
+      "status": "passed"
+    },
+    {
+      "device": "desktop",
+      "name": "no JS errors / no external business requests",
+      "status": "passed",
+      "requests": []
+    },
+    {
+      "device": "mobile",
+      "name": "no horizontal overflow",
+      "status": "passed"
+    },
+    {
+      "device": "mobile",
+      "name": "one runtime Dock; no duplicate sidebar brand",
+      "status": "passed"
+    },
+    {
+      "device": "mobile",
+      "name": "analysis is independent; Dock navigation preserves task filters and scroll",
+      "status": "passed"
+    },
+    {
+      "device": "mobile",
+      "name": "search and empty feedback",
+      "status": "passed"
+    },
+    {
+      "device": "mobile",
+      "name": "status filter is single-source navigation",
+      "status": "passed"
+    },
+    {
+      "device": "mobile",
+      "name": "unified filter drawer returns to same task list",
+      "status": "passed"
+    },
+    {
+      "device": "mobile",
+      "name": "selection mode owns checkbox and batch bar",
+      "status": "passed"
+    },
+    {
+      "device": "mobile",
+      "name": "selection + batch tag persists",
+      "status": "passed"
+    },
+    {
+      "device": "mobile",
+      "name": "detail, Tracker, seeding actions, adjustable panel",
+      "status": "passed"
+    },
+    {
+      "device": "mobile",
+      "name": "add validation; directory failure; nested back retains form and lock",
+      "status": "passed"
+    },
+    {
+      "device": "mobile",
+      "name": "settings + MoviePilot failure + opaque Dock",
+      "status": "passed"
+    },
+    {
+      "device": "mobile",
+      "name": "empty, loading, error and retry states clickable",
+      "status": "passed"
+    },
+    {
+      "device": "mobile",
+      "name": "end-of-list scroll clearance",
+      "status": "passed"
+    },
+    {
+      "device": "mobile",
+      "name": "add example task and processing feedback",
+      "status": "passed"
+    },
+    {
+      "device": "mobile",
+      "name": "Dock and selection touch targets >=44px",
+      "status": "passed"
+    },
+    {
+      "device": "mobile",
+      "name": "no JS errors / no external business requests",
+      "status": "passed",
+      "requests": []
+    },
+    {
+      "device": "narrow",
+      "name": "no horizontal overflow",
+      "status": "passed"
+    },
+    {
+      "device": "narrow",
+      "name": "one runtime Dock; no duplicate sidebar brand",
+      "status": "passed"
+    },
+    {
+      "device": "narrow",
+      "name": "analysis is independent; Dock navigation preserves task filters and scroll",
+      "status": "passed"
+    },
+    {
+      "device": "narrow",
+      "name": "search and empty feedback",
+      "status": "passed"
+    },
+    {
+      "device": "narrow",
+      "name": "status filter is single-source navigation",
+      "status": "passed"
+    },
+    {
+      "device": "narrow",
+      "name": "unified filter drawer returns to same task list",
+      "status": "passed"
+    },
+    {
+      "device": "narrow",
+      "name": "selection mode owns checkbox and batch bar",
+      "status": "passed"
+    },
+    {
+      "device": "narrow",
+      "name": "selection + batch tag persists",
+      "status": "passed"
+    },
+    {
+      "device": "narrow",
+      "name": "detail, Tracker, seeding actions, adjustable panel",
+      "status": "passed"
+    },
+    {
+      "device": "narrow",
+      "name": "add validation; directory failure; nested back retains form and lock",
+      "status": "passed"
+    },
+    {
+      "device": "narrow",
+      "name": "settings + MoviePilot failure + opaque Dock",
+      "status": "passed"
+    },
+    {
+      "device": "narrow",
+      "name": "empty, loading, error and retry states clickable",
+      "status": "passed"
+    },
+    {
+      "device": "narrow",
+      "name": "end-of-list scroll clearance",
+      "status": "passed"
+    },
+    {
+      "device": "narrow",
+      "name": "add example task and processing feedback",
+      "status": "passed"
+    },
+    {
+      "device": "narrow",
+      "name": "Dock and selection touch targets >=44px",
+      "status": "passed"
+    },
+    {
+      "device": "narrow",
+      "name": "no JS errors / no external business requests",
+      "status": "passed",
+      "requests": []
+    }
+  ]
+}

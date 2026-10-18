@@ -24,7 +24,10 @@ func version(cookie string)bool{r,_:=http.NewRequest("GET","http://127.0.0.1:180
 func socketHealthy()bool{c:=&http.Client{Timeout:2*time.Second,Transport:&http.Transport{DialContext:func(ctx context.Context,_,_ string)(net.Conn,error){return (&net.Dialer{}).DialContext(ctx,"unix",filepath.Join(dest,"app.sock"))}}};r,e:=c.Get("http://localhost/app/fnos-qbittorrent-native/api/v2/app/version");if e!=nil{return false};defer r.Body.Close();io.Copy(io.Discard,r.Body);return r.StatusCode==403}
 func prepare(){
  if os.Getuid()==0{panic("refusing root; configure run-as=package")};if os.Getenv("TRIM_UID")!=""&&os.Getenv("TRIM_UID")!=strconv.Itoa(os.Getuid()){panic("package UID mismatch")}
- share:=os.Getenv("TRIM_DATA_SHARE_PATHS");if share==""||strings.Contains(share,":")||!filepath.IsAbs(share)||strings.ContainsAny(share,"\r\n"){panic("one absolute authorized data-share required")}
+ // Official environment contract: colon-separated resource shares, never whitespace-separated.
+ shares:=strings.Split(os.Getenv("TRIM_DATA_SHARE_PATHS"),":");if len(shares)>128{panic("invalid authorized data-share list")};for _,root:=range shares{if !filepath.IsAbs(root)||root=="/"||filepath.Clean(root)!=root||strings.ContainsAny(root,"\x00\r\n"){panic("invalid authorized data-share list")}}
+ // Keep historical defaults on upgrades; initialize only the first declared resource share.
+ share:=shares[0]
  must(os.MkdirAll(filepath.Join(share,"incomplete"),0700));probe:=filepath.Join(share,".native-write-test");f,e:=os.OpenFile(probe,os.O_CREATE|os.O_EXCL|os.O_WRONLY,0600);must(e);f.Close();must(os.Remove(probe))
  dir:=path("profile/qBittorrent/config");must(os.MkdirAll(dir,0700));conf:=filepath.Join(dir,"qBittorrent.conf")
  if _,e:=os.Stat(conf);os.IsNotExist(e){
